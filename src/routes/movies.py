@@ -29,7 +29,7 @@ async def get_movies(
     result = await db.execute(
         select(MovieModel)
         .offset(offset)
-        .limit(next_page)
+        .limit(per_page)
     )
     movies = result.scalars().all()
     if not movies:
@@ -38,14 +38,17 @@ async def get_movies(
             detail="No movies found."
         )
     total_pages = (total_items + per_page - 1) // per_page
-    prev_page = (
-        f"/theater/movies/?page={page - 1}&per_page={per_page}"
-        if page > 1 else None
-    )
-    next_page = (
-        f"/theater/movies/?page={page + 1}&per_page={per_page}"
-        if page < total_pages else None
-    )
+    prev_page = None
+    next_page = None
+    if page > 1:
+        prev_page = (
+            f"/theater/movies/?page={page - 1}&per_page={per_page}"
+        )
+
+    if page < total_pages:
+        next_page = (
+            f"/theater/movies/?page={page + 1}&per_page={per_page}"
+        )
     return MovieListResponseSchema(
         movies=movies,
         prev_page=prev_page,
